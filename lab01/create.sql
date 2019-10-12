@@ -25,7 +25,7 @@ create table fs_db.groups (
 );
 
 create table fs_db.users_groups (
-        id		serial primary key,
+	id		serial primary key,
 	user_id		serial not null references fs_db.users(id),
 	group_id	serial not null references fs_db.groups(id)
 );
