@@ -33,6 +33,7 @@ create table fs.users_groups (
 create table fs.inodes (
 	inode		serial primary key,
 	name		varchar(64) not null,
+	size		bigint not null,
 	parent_inode	integer references fs.inodes(inode),
 	type_id		serial not null references fs.types(id),
 	owner_id	serial not null references fs.users(id),
