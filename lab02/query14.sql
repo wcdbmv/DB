@@ -3,4 +3,4 @@
 
 select types.name, count(*)
 from fs.inodes join fs.types on inodes.type_id = types.id
-group by types.name
+group by types.name;

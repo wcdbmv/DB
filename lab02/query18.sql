@@ -2,4 +2,4 @@
 
 update fs.inodes
 set name = 'temp.txt'
-where name = 'tmp.txt'
+where name = 'tmp.txt';

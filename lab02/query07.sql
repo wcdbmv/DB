@@ -2,4 +2,4 @@
 -- select fs size
 
 select sum(size) fs_size
-from fs.inodes
+from fs.inodes;
