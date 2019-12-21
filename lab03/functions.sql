@@ -172,4 +172,57 @@ call fs.table_info('inodes');
 
 
 -- Триггер AFTER
+drop function if exists fs.delete_empty_files;
+
+create function fs.delete_empty_files() returns trigger as
+$delete_empty_files$
+declare
+	files_number integer;
+begin
+	select count(*)
+	into files_number
+	from fs.inodes
+	where size = 0;
+
+	if (files_number = 0) then
+		delete
+		from fs.inodes
+		where size = 0;
+	end if;
+
+	return null;
+end;
+$delete_empty_files$ language plpgsql;
+
+drop trigger if exists check_number on fs.inodes;
+
+create trigger check_number
+	after delete
+	on fs.inodes
+execute procedure fs.delete_empty_files();
+
+
 -- Триггер INSTEAD OF
+drop view if exists fs.inodes_view;
+
+create view fs.inodes_view as
+select *
+from fs.inodes;
+
+drop function if exists fs.deny_delete;
+
+create function fs.deny_delete() returns trigger as
+$deny_delete$
+begin
+	raise notice 'deleting denied';
+end
+$deny_delete$ language plpgsql;
+
+drop trigger deny_delete
+on fs.inodes_view;
+
+create trigger deny_delete
+instead of delete
+on fs.inodes_view
+for each row
+execute procedure fs.deny_delete();
