@@ -11,9 +11,13 @@ xsd_name = sys.argv[2]
 #with open(xsd_name, 'r') as f:
 #    xsd = etree.parse(f.read())
 
-scheme = xmlschema.XMLSchema(xsd_name) #etree.XMLSchema(xsd)
+schema = xmlschema.XMLSchema(xsd_name) #etree.XMLSchema(xsd)
 #doc = etree.parse(xml)
-if scheme.is_valid(xml_name): #validate(doc):
-    print('Valid')
-else:
-    print('Invalid')
+schema.validate(xml_name)
+print('Valid')
+
+
+#if schema.is_valid(xml_name): #validate(doc):
+#    print('Valid')
+#else:
+#    print('Invalid')
