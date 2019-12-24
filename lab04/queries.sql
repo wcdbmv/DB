@@ -1,5 +1,6 @@
 create extension plpythonu;
 
+
 -- Определяемая пользователем скалярная функция CLR
 drop function if exists fs.avg_files_extensions_size;
 
@@ -75,24 +76,13 @@ select fs.all_files_extensions('txt', 10);
 
 
 -- Хранимая процедура CLR
-drop procedure if exists fs.triple(inout a int, inout b int);
+drop procedure if exists fs.up_files_extensions_size(extension text, lim int);
 
-create or replace procedure fs.triple(inout a int, inout b int) as $$
-return [a * 3, b * 3]
+create or replace procedure fs.up_files_extensions_size(inout a int, inout b int) as $$
+query = "update fs.inodes set size = size * 2 where name like '%.{}';".format(extension)
+result = plpy.execute(query, lim)
+return result
 $$ language plpythonu;
-
-do
-$$
-declare
-	a int;
-	b int;
-begin
-	a = 1;
-	b = 2;
-	call fs.triple(a, b);
-	raise notice '%, %', a, b;
-end;
-$$;
 
 
 -- Триггер CLR
@@ -124,3 +114,40 @@ values
 
 
 -- Определяемый пользователем тип данных CLR
+drop type if exists File cascade;
+
+create type File; -- "(name, content)"
+
+create or replace function file_in(cstring) returns File
+as '/home/user/bmstu/DB/lab04/file.so', 'file_in'
+language C immutable strict;
+
+create or replace function file_out(File) returns cstring
+as '/home/user/bmstu/DB/lab04/file.so', 'file_out'
+language C immutable strict;
+
+create or replace function file_recv(internal) returns File
+as '/home/user/bmstu/DB/lab04/file.so', 'file_recv'
+language C immutable strict;
+
+create or replace function file_send(File) returns bytea
+as '/home/user/bmstu/DB/lab04/file.so', 'file_send'
+language C immutable strict;
+
+create type File (
+	internallength = 1280,
+	input = file_in,
+	output = file_out,
+	receive = file_recv,
+	send = file_send
+);
+
+with a as (
+	select array[fs.inodes.name, fs.users.name, fs.groups.name] as x
+	from fs.inodes
+		join fs.users on inodes.owner_id = users.id
+		join fs.groups on inodes.group_id = groups.id
+	where inode = 1000
+)
+select format('[%s] --owner: %s-- --group: %s--', x[1], x[2], x[3])File
+from a;
